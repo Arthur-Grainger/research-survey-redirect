@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survey Randomizer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+        }
+        .loading {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .manual-link {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        .manual-link h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .survey-link {
+            display: inline-block;
+            margin: 10px;
+            padding: 12px 24px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .survey-link:hover {
+            background-color: #2980b9;
+        }
+        .instructions {
+            font-size: 14px;
+            color: #666;
+            margin-top: 20px;
+            text-align: left;
+        }
+        .instructions h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .instructions ol {
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        .url-input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Survey Assignment</h1>
+        
+        <div id="loading-section">
+            <div class="loading">Randomly assigning you to a survey...</div>
+            <div class="spinner"></div>
+        </div>
+
+        <div class="manual-link">
+            <h3>Setup Instructions</h3>
+            <div class="instructions">
+                <h4>To use this randomizer:</h4>
+                <ol>
+                    <li>Replace the URLs below with your actual Jisc survey links</li>
+                    <li>Save this HTML file</li>
+                    <li>Upload it to a web hosting service (like GitHub Pages, Netlify, or your institution's web server)</li>
+                    <li>Share the link to this page instead of direct survey links</li>
+                </ol>
+                
+                <h4>Current Survey URLs (edit these in the code):</h4>
+                <label for="survey-a">Survey A URL:</label>
+                <input type="text" id="survey-a" class="url-input" value="https://your-jisc-survey-a-link-here.com" readonly>
+                
+                <label for="survey-b">Survey B URL:</label>
+                <input type="text" id="survey-b" class="url-input" value="https://your-jisc-survey-b-link-here.com" readonly>
+                
+                <h4>Manual Testing:</h4>
+                <p>Click these links to test your surveys directly:</p>
+                <a href="https://your-jisc-survey-a-link-here.com" class="survey-link" target="_blank">Test Survey A</a>
+                <a href="https://your-jisc-survey-b-link-here.com" class="survey-link" target="_blank">Test Survey B</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration - Replace these URLs with your actual Jisc survey links
+        const SURVEY_A_URL = 'https://your-jisc-survey-a-link-here.com';
+        const SURVEY_B_URL = 'https://your-jisc-survey-b-link-here.com';
+        
+        // Optional: Set custom weights (default is 50/50)
+        const SURVEY_A_WEIGHT = 0.5; // 50% chance for Survey A
+        const SURVEY_B_WEIGHT = 0.5; // 50% chance for Survey B
+        
+        // Optional: Delay before redirect (in milliseconds)
+        const REDIRECT_DELAY = 2000; // 2 seconds
+        
+        function randomlyAssignSurvey() {
+            // Generate random number between 0 and 1
+            const random = Math.random();
+            
+            // Determine which survey to assign based on weights
+            const selectedSurvey = random < SURVEY_A_WEIGHT ? SURVEY_A_URL : SURVEY_B_URL;
+            const surveyName = random < SURVEY_A_WEIGHT ? 'Survey A' : 'Survey B';
+            
+            // Log assignment for debugging (remove in production if needed)
+            console.log(`Random value: ${random.toFixed(3)}, Assigned to: ${surveyName}`);
+            
+            // Optional: Track assignments (you can extend this to log to a server)
+            if (typeof(Storage) !== "undefined") {
+                let assignments = JSON.parse(localStorage.getItem('surveyAssignments') || '[]');
+                assignments.push({
+                    timestamp: new Date().toISOString(),
+                    survey: surveyName,
+                    randomValue: random
+                });
+                localStorage.setItem('surveyAssignments', JSON.stringify(assignments));
+            }
+            
+            // Redirect after delay
+            setTimeout(() => {
+                window.location.href = selectedSurvey;
+            }, REDIRECT_DELAY);
+        }
+        
+        // Check if URLs have been configured
+        function checkConfiguration() {
+            if (SURVEY_A_URL.includes('your-jisc-survey') || SURVEY_B_URL.includes('your-jisc-survey')) {
+                console.warn('Survey URLs need to be configured before use');
+                return false;
+            }
+            return true;
+        }
+        
+        // Start the randomization process when page loads
+        window.addEventListener('load', function() {
+            if (checkConfiguration()) {
+                randomlyAssignSurvey();
+            } else {
+                // If not configured, show setup instructions
+                document.getElementById('loading-section').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
